@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "python-app"
+version = "0.1.0"
+description = ""
+authors = ["Kirill 'horseinthesky' Pletnev <pwnedbyspawn@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opentelemetry-api = "^1.22.0"
+opentelemetry-sdk = "^1.22.0"
+pyyaml = "^6.0.1"
+opentelemetry-exporter-otlp = "^1.22.0"
+prometheus-fastapi-instrumentator = "^6.1.0"
+fastapi = "^0.109.2"
+opentelemetry-instrumentation-fastapi = "^0.43b0"
+uvicorn = "^0.27.0.post1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

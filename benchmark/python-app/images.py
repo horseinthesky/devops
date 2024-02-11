@@ -16,9 +16,9 @@ class Image:
 
 
 async def download():
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(0.005)
 
 
 async def save(image: Image):
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.002)
     del image

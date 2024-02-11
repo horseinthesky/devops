@@ -22,11 +22,11 @@ func NewImage() *Image {
 }
 
 func download(key string) error {
-	time.Sleep(time.Millisecond * 200)
+	time.Sleep(time.Millisecond * 5)
 	return nil
 }
 
 func save(c *Image) error {
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(time.Millisecond * 2)
 	return nil
 }

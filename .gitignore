@@ -1,1 +1,6 @@
+# Python venvs
+venv
 .venv
+
+# Rust builds
+target

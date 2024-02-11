@@ -51,5 +51,5 @@ func (h *handler) getImage(c *gin.Context) {
 }
 
 func (h *handler) getHealth(c *gin.Context) {
-	c.JSON(200, gin.H{"status": "ok", "message": "up"})
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "up"})
 }

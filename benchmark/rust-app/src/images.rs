@@ -3,6 +3,7 @@ use std::time::SystemTime;
 use uuid::Uuid;
 
 #[allow(dead_code)]
+#[derive(Debug)]
 struct Image {
     uuid: Uuid,
     modified: SystemTime,
@@ -17,10 +18,12 @@ impl Image {
     }
 }
 
+#[tracing::instrument]
 async fn download() {
     sleep(Duration::from_millis(5)).await;
 }
 
+#[tracing::instrument]
 async fn save(_image: Image) {
     sleep(Duration::from_millis(2)).await;
 }

@@ -12,6 +12,9 @@ use devices::{get_devices, Device};
 mod images;
 use images::get_images;
 
+const DEFAULT_PORT: &str = "8000";
+const DEFAULT_HOST: &str = "0.0.0.0";
+
 #[derive(Serialize)]
 struct Response<'a> {
     status: &'a str,
@@ -36,7 +39,11 @@ async fn main() -> Result<(), axum::BoxError> {
             get(|| async { prometheus_exporter::encode_http_response() }),
         );
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8000").await?;
+    let port = std::env::var("PORT").unwrap_or(DEFAULT_PORT.to_string());
+    let host = std::env::var("PORT").unwrap_or(DEFAULT_HOST.to_string());
+
+    let listener =
+        tokio::net::TcpListener::bind(format!("{}:{}", host, port)).await?;
 
     axum::serve(listener, app).await?;
 
@@ -50,12 +57,13 @@ async fn health() -> Json<Response<'static>> {
     })
 }
 
-#[tracing::instrument]
 #[autometrics]
+#[tracing::instrument]
 async fn devices() -> Json<Vec<Device<'static>>> {
     Json(get_devices())
 }
 
+#[autometrics]
 #[tracing::instrument]
 async fn images() -> Json<Response<'static>> {
     get_images().await;

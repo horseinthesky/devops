@@ -4,12 +4,16 @@ use opentelemetry_sdk::Resource;
 use opentelemetry_semantic_conventions as semconv;
 use tracing_subscriber::prelude::*;
 
+const DEFAULT_OTLP_ENDPOINT: &str = "localhost:4317";
+
 pub fn init_otlp() {
+    let otlp_endpoint = std::env::var("OTLP_ENDPOINT").unwrap_or(DEFAULT_OTLP_ENDPOINT.to_string());
+
     // Create OTLP gRPC exporter
     let exporter = opentelemetry_otlp::new_exporter()
         .grpcio()
         .with_timeout(std::time::Duration::from_secs(3))
-        .with_endpoint("localhost:4317");
+        .with_endpoint(otlp_endpoint);
 
     // Create a resource
     let resource = Resource::new([

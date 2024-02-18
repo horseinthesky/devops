@@ -28,6 +28,7 @@ async fn save(_image: Image) {
     sleep(Duration::from_millis(2)).await;
 }
 
+#[tracing::instrument]
 pub async fn get_images() {
     download().await;
 

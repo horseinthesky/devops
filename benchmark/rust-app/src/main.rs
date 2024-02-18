@@ -1,4 +1,5 @@
-use axum::{routing::get, Json, Router};
+use autometrics::{autometrics, prometheus_exporter};
+use axum::{http::Request, routing::get, Json, Router};
 use serde::Serialize;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{debug, info, info_span, warn};
@@ -31,12 +32,14 @@ async fn main() -> Result<(), axum::BoxError> {
         .route("/health", get(health))
         .route(
             "/metrics",
-            get(|| async { "Hello, World!" }),
+            get(|| async { prometheus_exporter::encode_http_response() }),
         );
+    // .route(
+    //     "/metrics",
+    //     get(|| async { "Hello, World!" }),
+    // );
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8000").await?;
 
     axum::serve(listener, app).await?;
 
@@ -51,10 +54,11 @@ async fn health() -> Json<Response<'static>> {
 }
 
 #[tracing::instrument]
+#[autometrics]
 async fn devices() -> Json<Vec<Device<'static>>> {
-    // info_span!("internal").in_scope(|| {
-    //     warn!("do stuff inside internal");
-    // });
+    info_span!("internal").in_scope(|| {
+        warn!("do stuff inside internal");
+    });
 
     Json(get_devices())
 }

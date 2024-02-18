@@ -1,5 +1,5 @@
 use autometrics::{autometrics, prometheus_exporter};
-use axum::{http::Request, routing::get, Json, Router};
+use axum::{routing::get, Json, Router};
 use serde::Serialize;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{debug, info, info_span, warn};
@@ -15,7 +15,8 @@ use images::get_images;
 #[derive(Serialize)]
 struct Response<'a> {
     status: &'a str,
-    message: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message: Option<&'a str>,
 }
 
 #[tokio::main]
@@ -34,10 +35,6 @@ async fn main() -> Result<(), axum::BoxError> {
             "/metrics",
             get(|| async { prometheus_exporter::encode_http_response() }),
         );
-    // .route(
-    //     "/metrics",
-    //     get(|| async { "Hello, World!" }),
-    // );
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8000").await?;
 
@@ -49,17 +46,13 @@ async fn main() -> Result<(), axum::BoxError> {
 async fn health() -> Json<Response<'static>> {
     Json(Response {
         status: "ok",
-        message: "up",
+        message: None,
     })
 }
 
 #[tracing::instrument]
 #[autometrics]
 async fn devices() -> Json<Vec<Device<'static>>> {
-    info_span!("internal").in_scope(|| {
-        warn!("do stuff inside internal");
-    });
-
     Json(get_devices())
 }
 
@@ -69,6 +62,6 @@ async fn images() -> Json<Response<'static>> {
 
     Json(Response {
         status: "ok",
-        message: "saved",
+        message: Some("saved"),
     })
 }

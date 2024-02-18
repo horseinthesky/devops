@@ -1,13 +1,13 @@
+import os
+
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from config import Config
-
-# Load app config from yaml file.
-config = Config.from_yaml("config.yaml")
+DEFAULT_OTLP_ENDPOINT = "localhost:4317"
+OTLP_ENDPOINT = os.getenv("OTLP_ENPOINT", DEFAULT_OTLP_ENDPOINT)
 
 # Start configuring OpenTelemetry.
 resource = Resource(attributes={SERVICE_NAME: "python-app"})
@@ -19,7 +19,7 @@ processor = BatchSpanProcessor(
         # Change default HTTPS -> HTTP.
         insecure=True,
         # Update default OTLP reciver endpoint.
-        endpoint=config.otlp_endpoint,
+        endpoint=OTLP_ENDPOINT,
     )
 )
 provider.add_span_processor(processor)

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,9 +20,12 @@ func init() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
+const (
+	defaultPort = "8000"
+)
+
 type handler struct {
 	metrics *metrics
-	config  *Config
 }
 
 func (h *handler) getHealth(c *gin.Context) {
@@ -64,12 +69,9 @@ func (h *handler) getImage(c *gin.Context) {
 }
 
 func main() {
-	var c Config
-	c.loadConfig("config.yaml")
-
 	// Setup telemetry
 	ctx := context.Background()
-	tp, err := setupTraceProvider(ctx, c.OTLPEndpoint)
+	tp, err := setupTraceProvider(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +80,7 @@ func main() {
 	defer func() { _ = tp.Shutdown(ctx) }()
 
 	// Initialize Gin handler.
-	h := handler{config: &c, metrics: NewMetrics()}
+	h := handler{metrics: NewMetrics()}
 
 	r := gin.New()
 	r.Use(otelgin.Middleware("go-app", otelgin.WithFilter(func(req *http.Request) bool {
@@ -96,6 +98,15 @@ func main() {
 	})
 
 	// Start the main Gin HTTP server.
-	log.Printf("Starting App on port %d", c.Port)
-	r.Run(fmt.Sprintf(":%d", c.Port))
+	portStr := os.Getenv("PORT")
+	if portStr == "" {
+		portStr = defaultPort
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		log.Fatal("failed to parse app port: %w", err)
+	}
+
+	log.Printf("Starting App on port %d", port)
+	r.Run(fmt.Sprintf(":%d", port))
 }

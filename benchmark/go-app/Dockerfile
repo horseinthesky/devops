@@ -1,18 +1,11 @@
-FROM golang:1.21.3-bookworm AS build
-
+FROM golang:1.22.0-bookworm as build
 WORKDIR /app
-
-COPY go.mod ./
-COPY go.sum ./
-
-RUN go mod download && go mod verify
-
 COPY . .
+RUN : \
+  && go mod download \
+  && CGO_ENABLED=0 go build -o app .
 
-RUN go build -o /myapp .
-
-FROM gcr.io/distroless/base-debian12
-
-COPY --from=build /myapp /myapp
-
-ENTRYPOINT ["/myapp"]
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /app/app /
+ENV PORT=8000
+ENTRYPOINT ["/app"]

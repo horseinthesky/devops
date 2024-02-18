@@ -2,31 +2,30 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
-	oteltrace "go.opentelemetry.io/otel/sdk/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	"go.opentelemetry.io/otel/trace"
+)
+
+const (
+	defaultOtlpEndpoint = "localhost:4317"
 )
 
 var (
 	tracer trace.Tracer
 )
 
-func newOTLPExporter(ctx context.Context, otlpEndpoint string) (oteltrace.SpanExporter, error) {
-	// Change default HTTPS -> HTTP.
-	insecureOpt := otlptracegrpc.WithInsecure()
+func setupTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
+	otlpEndpoint := os.Getenv("OTLP_ENDPOINT")
+	if otlpEndpoint == "" {
+		otlpEndpoint = defaultOtlpEndpoint
+	}
 
-	// Update default OTLP reciver endpoint.
-	endpointOpt := otlptracegrpc.WithEndpoint(otlpEndpoint)
-
-	return otlptracegrpc.New(ctx, insecureOpt, endpointOpt)
-}
-
-func setupTraceProvider(ctx context.Context, otlpEndpoint string) (*sdktrace.TracerProvider, error) {
 	insecureOpt := otlptracegrpc.WithInsecure()
 	endpointOpt := otlptracegrpc.WithEndpoint(otlpEndpoint)
 

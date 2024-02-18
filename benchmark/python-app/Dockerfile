@@ -15,8 +15,8 @@ RUN : \
     -t /bundle/
 
 FROM python:3.12.2-slim-bookworm
-ENV HOST=0.0.0.0 PORT=8000 PYTHONDONTWRITEBYTECODE=1
 COPY --from=deps /bundle/ /usr/local/lib/python3.12/site-packages/
 WORKDIR /app
 COPY . .
+ENV HOST=0.0.0.0 PORT=8000 PYTHONDONTWRITEBYTECODE=1
 ENTRYPOINT ["sh", "-c", "/usr/local/lib/python3.12/site-packages/bin/uvicorn --host $HOST --port $PORT app:app"]

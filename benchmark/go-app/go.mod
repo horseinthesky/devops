@@ -1,4 +1,4 @@
-module github.com/antonputra/tutorials/lessons/180/go-app
+module go-app
 
 go 1.21.3
 
@@ -11,7 +11,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.22.0
 	go.opentelemetry.io/otel/sdk v1.22.0
 	go.opentelemetry.io/otel/trace v1.23.0
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

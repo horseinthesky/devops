@@ -1,2 +1,0 @@
-port: 8000
-otlp_endpoint: localhost:4317

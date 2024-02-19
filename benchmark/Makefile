@@ -4,6 +4,7 @@ APPS := \
 	python-app \
 	go-app \
 	rust-app \
+	client \
 
 VERSION := latest
 

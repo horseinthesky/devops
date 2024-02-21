@@ -2,17 +2,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-app
+  name: rust-app
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: go-app
+      app: rust-app
   template:
     metadata:
       labels:
-        app: go-app
+        app: rust-app
     spec:
       affinity:
         podAntiAffinity:
@@ -23,11 +23,11 @@ spec:
                     operator: In
                     values:
                       - python-app
-                      - rust-app
+                      - go-app
               topologyKey: "kubernetes.io/hostname"
       containers:
-        - name: go-app
-          image: cr.yandex/crp2kiiol9t6tbj1tiog/go-app:latest
+        - name: rust-app
+          image: cr.yandex/crp2kiiol9t6tbj1tiog/rust-app:latest
           env:
             - name: OTLP_ENDPOINT
               value: tempo.monitoring:4317

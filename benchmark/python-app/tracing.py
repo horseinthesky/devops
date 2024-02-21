@@ -7,7 +7,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 DEFAULT_OTLP_ENDPOINT = "localhost:4317"
-OTLP_ENDPOINT = os.getenv("OTLP_ENPOINT", DEFAULT_OTLP_ENDPOINT)
+OTLP_ENDPOINT = os.getenv("OTLP_ENDPOINT", DEFAULT_OTLP_ENDPOINT)
 
 # Start configuring OpenTelemetry.
 resource = Resource(attributes={SERVICE_NAME: "python-app"})

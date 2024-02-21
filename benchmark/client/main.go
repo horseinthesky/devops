@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"log"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"sync"
 	"time"
@@ -86,6 +86,6 @@ func doWork(ch chan string, clients int) {
 }
 
 func sleep(us int) {
-	r := rand.Intn(us)
+	r := rand.N(us)
 	time.Sleep(time.Duration(r) * time.Microsecond)
 }

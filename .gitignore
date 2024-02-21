@@ -1,3 +1,13 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Prodiver lock files
+.terraform.lock.hcl
+
 # Python venvs
 venv
 .venv

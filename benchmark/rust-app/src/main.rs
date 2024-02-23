@@ -1,13 +1,13 @@
 use autometrics::{autometrics, prometheus_exporter};
 use axum::{routing::get, Json, Router};
 use serde::Serialize;
+use serde_json::{json, Value};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{debug, info, info_span, warn};
 
 mod otlp;
 
 mod devices;
-use devices::{get_devices, Device};
+use devices::get_devices;
 
 mod images;
 use images::get_images;
@@ -16,10 +16,53 @@ const DEFAULT_PORT: &str = "8000";
 const DEFAULT_HOST: &str = "0.0.0.0";
 
 #[derive(Serialize)]
-struct Response<'a> {
-    status: &'a str,
+#[serde(rename_all(serialize = "lowercase"))]
+enum Status {
+    OK,
+    ERROR,
+}
+
+#[derive(Serialize)]
+struct AppResponse<'a> {
+    status: Status,
     #[serde(skip_serializing_if = "Option::is_none")]
     message: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    result: Option<Value>,
+}
+
+impl<'a> AppResponse<'a> {
+    fn ok() -> Self {
+        Self {
+            status: Status::OK,
+            message: None,
+            result: None,
+        }
+    }
+
+    fn error() -> Self {
+        Self {
+            status: Status::ERROR,
+            message: None,
+            result: None,
+        }
+    }
+
+    fn with_message(self, message: &'a str) -> Self {
+        Self {
+            status: self.status,
+            message: Some(message),
+            result: self.result,
+        }
+    }
+
+    fn with_result(self, result: Option<Value>) -> Self {
+        Self {
+            status: self.status,
+            message: self.message,
+            result,
+        }
+    }
 }
 
 #[tokio::main]
@@ -50,26 +93,20 @@ async fn main() -> Result<(), axum::BoxError> {
     Ok(())
 }
 
-async fn health() -> Json<Response<'static>> {
-    Json(Response {
-        status: "ok",
-        message: None,
-    })
+async fn health() -> Json<AppResponse<'static>> {
+    Json(AppResponse::ok().with_message("up"))
 }
 
 #[autometrics]
 #[tracing::instrument]
-async fn devices() -> Json<Vec<Device<'static>>> {
-    Json(get_devices())
+async fn devices() -> Json<AppResponse<'static>> {
+    Json(AppResponse::ok().with_result(Some(json!(get_devices()))))
 }
 
 #[autometrics]
 #[tracing::instrument]
-async fn images() -> Json<Response<'static>> {
+async fn images() -> Json<AppResponse<'static>> {
     get_images().await;
 
-    Json(Response {
-        status: "ok",
-        message: Some("saved"),
-    })
+    Json(AppResponse::ok().with_message("saved"))
 }

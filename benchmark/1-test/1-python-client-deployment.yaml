@@ -1,0 +1,50 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: python-app-client
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: python-app-client
+    spec:
+      restartPolicy: Never
+      # nodeSelector:
+      #   service: python-client
+      # tolerations:
+      #   - key: service
+      #     operator: Equal
+      #     value: python-client
+      #     effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - go-app
+                      - rust-app
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: python-app-client
+          image: cr.yandex/crp2kiiol9t6tbj1tiog/client:latest
+          command:
+            - /app
+            - -maxClients=500
+            - -scaleInterval=1000
+            - -randomSleep=4000
+            - -target=http://python-app:8000/api/devices
+          ports:
+            - name: metrics
+              containerPort: 8081
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+              cpu: 1000m

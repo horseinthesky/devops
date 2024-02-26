@@ -7,4 +7,4 @@ RUN : \
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=build /app/app /
-ENTRYPOINT ["/myapp"]
+ENTRYPOINT ["/app"]

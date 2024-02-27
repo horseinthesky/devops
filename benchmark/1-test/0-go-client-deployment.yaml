@@ -19,15 +19,14 @@ spec:
       #     value: golang-client
       #     effect: NoSchedule
       affinity:
-        podAntiAffinity:
+        podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchExpressions:
                   - key: app
                     operator: In
                     values:
-                      - python-app
-                      - rust-app
+                      - go-app
               topologyKey: "kubernetes.io/hostname"
       containers:
         - name: go-app-client
@@ -47,4 +46,4 @@ spec:
               cpu: 500m
             limits:
               memory: 2Gi
-              cpu: 1000m
+              cpu: 1

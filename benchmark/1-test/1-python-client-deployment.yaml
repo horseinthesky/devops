@@ -19,15 +19,14 @@ spec:
       #     value: python-client
       #     effect: NoSchedule
       affinity:
-        podAntiAffinity:
+        podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchExpressions:
                   - key: app
                     operator: In
                     values:
-                      - go-app
-                      - rust-app
+                      - python-app
               topologyKey: "kubernetes.io/hostname"
       containers:
         - name: python-app-client
@@ -47,4 +46,4 @@ spec:
               cpu: 500m
             limits:
               memory: 2Gi
-              cpu: 1000m
+              cpu: 1

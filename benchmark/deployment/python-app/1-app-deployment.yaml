@@ -33,11 +33,11 @@ spec:
               value: tempo.monitoring:4317
           resources:
             requests:
-              memory: 512Mi
-              cpu: "1"
+              memory: 128Mi
+              cpu: 500m
             limits:
-              memory: 512Mi
-              cpu: "2"
+              memory: 128Mi
+              cpu: 1
           readinessProbe:
             httpGet:
               path: /health

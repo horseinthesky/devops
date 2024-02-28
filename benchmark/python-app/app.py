@@ -33,7 +33,7 @@ def get_devices() -> JSONResponse:
 @app.get("/api/images")
 async def get_image() -> JSONResponse:
     # We get trace id and root span id from instrumentator
-    with request_duration.labels("download").time(), tracer.start_as_current_span(
+    with request_duration.labels("s3").time(), tracer.start_as_current_span(
         "DOWNLOAD IMAGE"
     ) as span:
         await download()
@@ -41,7 +41,7 @@ async def get_image() -> JSONResponse:
 
     image = Image()
 
-    with request_duration.labels("save").time(), tracer.start_as_current_span(
+    with request_duration.labels("db").time(), tracer.start_as_current_span(
         "SAVE IMAGE"
     ) as span:
         await save(image)

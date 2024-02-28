@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rust-app-client
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: rust-app-client
+    spec:
+      restartPolicy: Never
+      # nodeSelector:
+      #   service: rust-client
+      # tolerations:
+      #   - key: service
+      #     operator: Equal
+      #     value: rust-client
+      #     effect: NoSchedule
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rust-app
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: rust-app-client
+          image: cr.yandex/crp2kiiol9t6tbj1tiog/client:latest
+          command:
+            - /app
+            - -maxClients=30
+            - -scaleInterval=4000
+            - -randomSleep=90000
+            - -target=http://rust-app:8000/api/images
+          ports:
+            - name: metrics
+              containerPort: 8081
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+              cpu: 1

@@ -48,7 +48,7 @@ func (h *handler) getImage(c *gin.Context) {
 	}
 
 	// Record download duration.
-	h.metrics.duration.With(prometheus.Labels{"operation": "download"}).Observe(time.Since(now).Seconds())
+	h.metrics.duration.With(prometheus.Labels{"operation": "s3"}).Observe(time.Since(now).Seconds())
 
 	span.AddEvent("downladed")
 	span.End()
@@ -61,7 +61,7 @@ func (h *handler) getImage(c *gin.Context) {
 	save(image)
 
 	// Record save duration.
-	h.metrics.duration.With(prometheus.Labels{"operation": "save"}).Observe(time.Since(now).Seconds())
+	h.metrics.duration.With(prometheus.Labels{"operation": "db"}).Observe(time.Since(now).Seconds())
 
 	span.AddEvent("saved")
 

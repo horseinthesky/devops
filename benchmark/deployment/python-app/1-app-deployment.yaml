@@ -31,6 +31,9 @@ spec:
           env:
             - name: OTLP_ENDPOINT
               value: tempo.monitoring:4317
+          ports:
+            - name: metrics
+              containerPort: 8000
           resources:
             requests:
               memory: 128Mi

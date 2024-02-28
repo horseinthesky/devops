@@ -14,4 +14,4 @@ spec:
     matchLabels:
       app: python-app
   podMetricsEndpoints:
-    - port: http
+    - port: metrics

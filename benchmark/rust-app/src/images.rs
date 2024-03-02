@@ -1,5 +1,5 @@
+use std::time::{Instant, SystemTime};
 use tokio::time::{sleep, Duration};
-use std::time::SystemTime;
 use uuid::Uuid;
 
 #[allow(dead_code)]
@@ -30,8 +30,23 @@ async fn save(_image: Image) {
 
 #[tracing::instrument]
 pub async fn get_images() {
+    let start = Instant::now();
     download().await;
 
+    metrics::histogram!(
+        "myapp_request_duration_seconds",
+        &[("operation", "s3")],
+    )
+    .record(start.elapsed());
+
     let image = Image::new();
+
+    let start = Instant::now();
     save(image).await;
+
+    metrics::histogram!(
+        "myapp_request_duration_seconds",
+        &[("operation", "db")],
+    )
+    .record(start.elapsed());
 }

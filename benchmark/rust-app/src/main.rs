@@ -1,8 +1,7 @@
-use autometrics::{autometrics, prometheus_exporter};
-use axum::{routing::get, Json, Router};
+use axum::{extract::Request, routing::get, Json, Router};
 use serde::Serialize;
 use serde_json::{json, Value};
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+use tower_http::trace::TraceLayer;
 
 mod otlp;
 
@@ -69,17 +68,34 @@ impl<'a> AppResponse<'a> {
 async fn main() -> Result<(), axum::BoxError> {
     otlp::init_otlp();
 
+    let (prometheus_layer, metric_handle) =
+        axum_prometheus::PrometheusMetricLayer::pair();
+
     let app = Router::new()
         .route("/api/devices", get(devices))
         .route("/api/images", get(images))
         .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::new().include_headers(true)),
+            TraceLayer::new_for_http().make_span_with(
+                |request: &Request<_>| {
+                    let name =
+                        format!("{} {}", request.method(), request.uri());
+
+                    tracing::debug_span!(
+                        "request",
+                        otel.name = name,
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        headers = ?request.headers(),
+                        version = ?request.version(),
+                    )
+                },
+            ),
         )
+        .layer(prometheus_layer)
         .route("/health", get(health))
         .route(
             "/metrics",
-            get(|| async { prometheus_exporter::encode_http_response() }),
+            get(|| async move { metric_handle.render() }),
         );
 
     let port = std::env::var("PORT").unwrap_or(DEFAULT_PORT.to_string());
@@ -97,13 +113,11 @@ async fn health() -> Json<AppResponse<'static>> {
     Json(AppResponse::ok().with_message("up"))
 }
 
-#[autometrics]
 #[tracing::instrument]
 async fn devices() -> Json<AppResponse<'static>> {
     Json(AppResponse::ok().with_result(Some(json!(get_devices()))))
 }
 
-#[autometrics]
 #[tracing::instrument]
 async fn images() -> Json<AppResponse<'static>> {
     get_images().await;

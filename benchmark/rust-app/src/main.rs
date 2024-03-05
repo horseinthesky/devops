@@ -1,4 +1,5 @@
 use axum::{extract::Request, routing::get, Json, Router};
+use metrics_exporter_prometheus::PrometheusBuilder;
 use serde::Serialize;
 use serde_json::{json, Value};
 use tower_http::trace::TraceLayer;
@@ -68,8 +69,9 @@ impl<'a> AppResponse<'a> {
 async fn main() -> Result<(), axum::BoxError> {
     otlp::init_otlp();
 
-    let (prometheus_layer, metric_handle) =
-        axum_prometheus::PrometheusMetricLayer::pair();
+    let metric_handle = PrometheusBuilder::new()
+        .install_recorder()
+        .expect("failed to install recorder");
 
     let app = Router::new()
         .route("/api/devices", get(devices))
@@ -91,7 +93,6 @@ async fn main() -> Result<(), axum::BoxError> {
                 },
             ),
         )
-        .layer(prometheus_layer)
         .route("/health", get(health))
         .route(
             "/metrics",

@@ -7,18 +7,14 @@ import (
 	"net/http"
 	"os"
 	"slices"
-	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/contrib/otelfiber/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
-
-func init() {
-	gin.SetMode(gin.ReleaseMode)
-}
 
 const (
 	defaultPort = "8000"
@@ -28,24 +24,25 @@ type handler struct {
 	metrics *metrics
 }
 
-func (h *handler) getHealth(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "up"})
+func (h *handler) getHealth(c *fiber.Ctx) error {
+	return c.JSON(&fiber.Map{
+		"status":  "ok",
+		"message": "up",
+	})
 }
 
-func (h *handler) getDevices(c *gin.Context) {
-	c.JSON(http.StatusOK, get_devices())
+func (h *handler) getDevices(c *fiber.Ctx) error {
+	return c.JSON(&fiber.Map{
+		"status": "ok",
+		"result": get_devices(),
+	})
 }
 
-func (h *handler) getImage(c *gin.Context) {
-	_, span := tracer.Start(c.Request.Context(), "DOWNLOAD IMAGE")
+func (h *handler) getImage(c *fiber.Ctx) error {
+	_, span := tracer.Start(c.UserContext(), "download")
 
 	now := time.Now()
 	err := download("thumbnail.png")
-	if err != nil {
-		log.Printf("download failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "internal error"})
-		return
-	}
 
 	// Record download duration.
 	h.metrics.duration.With(prometheus.Labels{"operation": "s3"}).Observe(time.Since(now).Seconds())
@@ -53,8 +50,16 @@ func (h *handler) getImage(c *gin.Context) {
 	span.AddEvent("downladed")
 	span.End()
 
+	if err != nil {
+		log.Printf("download failed: %v", err)
+		return c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"status":  "error",
+			"message": "internal error",
+		})
+	}
+
 	image := NewImage()
-	_, span = tracer.Start(c.Request.Context(), "SAVE IMAGE")
+	_, span = tracer.Start(c.UserContext(), "save")
 	defer span.End()
 
 	now = time.Now()
@@ -65,7 +70,10 @@ func (h *handler) getImage(c *gin.Context) {
 
 	span.AddEvent("saved")
 
-	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "saved"})
+	return c.JSON(&fiber.Map{
+		"status":  "ok",
+		"message": "saved",
+	})
 }
 
 func main() {
@@ -79,34 +87,29 @@ func main() {
 	// Handle shutdown properly so nothing leaks.
 	defer func() { _ = tp.Shutdown(ctx) }()
 
-	// Initialize Gin handler.
+	// Initialize handler.
 	h := handler{metrics: NewMetrics()}
 
-	r := gin.New()
-	r.Use(otelgin.Middleware("go-app", otelgin.WithFilter(func(req *http.Request) bool {
-		notToLogEndpoints := []string{"/health", "/metrics"}
-		return slices.Index(notToLogEndpoints, req.URL.Path) == -1
+	app := fiber.New()
+
+	// OTLP middleware
+	endpointsToSkip := []string{"/health", "/metrics"}
+	app.Use(otelfiber.Middleware(otelfiber.WithNext(func(c *fiber.Ctx) bool {
+		return slices.Index(endpointsToSkip, c.Path()) != -1
 	})))
 
-	// Define handler functions for each endpoint.
-	r.GET("/api/devices", h.getDevices)
-	r.GET("/api/images", h.getImage)
-	r.GET("/health", h.getHealth)
-	// Attach prometheus /metrics endpoint to Gin router.
-	r.GET("/metrics", func(c *gin.Context) {
-		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
-	})
+	// Routes
+	app.Get("/api/devices", h.getDevices)
+	app.Get("/api/images", h.getImage)
+	app.Get("/health", h.getHealth)
+	// Attach prometheus /metrics endpoint to Fiber router.
+	// Use adaptor for http.HandlerFunc -> fiber.Handler
+	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
-	// Start the main Gin HTTP server.
-	portStr := os.Getenv("PORT")
-	if portStr == "" {
-		portStr = defaultPort
+	// Start HTTP server.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
 	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		log.Fatal("failed to parse app port: %w", err)
-	}
-
-	log.Printf("Starting App on port %d", port)
-	r.Run(fmt.Sprintf(":%d", port))
+	app.Listen(fmt.Sprintf(":%v", port))
 }

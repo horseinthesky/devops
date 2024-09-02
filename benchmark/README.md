@@ -1,4 +1,6 @@
-== k8s
+# 📈 Python (FastAPI) vs Go (Fiber) vs Rust (Axum) simple benchmark
+
+## k8s
 
 Working k8s cluster. Something like [this](https://github.com/horseinthesky/ycloud) setup.
 
@@ -18,7 +20,7 @@ cl1jj6hvt1r34cvj50eq-ymoz   Ready    <none>   75s   v1.28.9
 
 For this benchmark lab to work you need at least 3 nodes with a minimum amount of resources. I use nodes with 4 CPUs and 8 Gigs of RAM each.
 
-== Observability
+## Observability
 
 Prometheus, Grafana, Tempo.
 
@@ -49,7 +51,7 @@ prometheus-operator-7888b5785c-n42vf   1/1     Running   0          88s
 tempo-0                                1/1     Running   0          105s
 ```
 
-=== Prometheus
+### Prometheus
 
 To manually connect to Prometheus use the following command:
 ```
@@ -61,7 +63,7 @@ Then open Prometheus UI in your browser
 http://localhost:9090
 ```
 
-=== Grafana
+### Grafana
 
 Next `cd` back to the project root and upload the Grafana dashboard
 ```
@@ -77,7 +79,9 @@ grafana   LoadBalancer   10.255.255.214   <ip_address>    80:31658/TCP   19m
 
 Open `<ip_address>` in you browser. Creds are `admin/devops123`. You can open "Performance" dashboard you have just uploaded.
 
-== Apps
+## Apps
+
+### Build
 
 Now you need to build images for the apps and upload them to the container registry (CR):
 - `python-app` ([FastAPI](https://fastapi.tiangolo.com/))
@@ -92,7 +96,7 @@ make
 
 I use a hardcoded CR id in my Yandex Cloud environment. Change it to your own in the `Makefile`.
 
-== Deployment
+### Deploy
 
 After all the images are uploaded we can finally deploy the pods:
 ```
@@ -110,9 +114,9 @@ rust-app-6dc5dd444d-s99g2     1/1     Running   0          83s
 
 All the pods have equal amount of CPU and RAM.
 
-== Tests
+## Tests
 
-=== Test #1
+### Test #1
 
 Now we can run the first test:
 ```
@@ -143,7 +147,7 @@ Get back to your Grafana "Performance" dashboard and you see the graphs:
 
 ![test1](https://github.com/horseinthesky/devops/blob/main/benchmark/images/test1.png)
 
-==== Cleanup
+#### Cleanup
 
 Stop the test:
 
@@ -158,7 +162,7 @@ terraform destroy
 terraform apply
 ```
 
-=== Test #2
+### Test #2
 
 2nd test:
 ```
@@ -181,7 +185,7 @@ Graphs:
 
 ![test2](https://github.com/horseinthesky/devops/blob/main/benchmark/images/test2.png)
 
-==== Cleanup
+#### Cleanup
 
 Stop the test:
 
@@ -189,7 +193,7 @@ Stop the test:
 k delete -Rf 2-test
 ```
 
-== Telemetry
+## Telemetry
 
 All requests are measured and reported to `tempo`.
 

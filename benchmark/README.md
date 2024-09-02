@@ -141,7 +141,7 @@ This test measures:
 
 Get back to your Grafana "Performance" dashboard and you see the graphs:
 
-![test1](https://github.com/horseinthesky/devops/benchmark/blob/main/images/test1.png)
+![test1](https://github.com/horseinthesky/devops/blob/main/benchmark/images/test1.png)
 
 ==== Cleanup
 
@@ -179,7 +179,7 @@ S3 and DB metrics are just mocks. They are needed to make the Tempo traces in lo
 
 Graphs:
 
-![test2](https://github.com/horseinthesky/devops/benchmark/blob/main/images/test2.png)
+![test2](https://github.com/horseinthesky/devops/blob/main/benchmark/images/test2.png)
 
 ==== Cleanup
 
@@ -193,4 +193,4 @@ k delete -Rf 2-test
 
 All requests are measured and reported to `tempo`.
 
-![test2](https://github.com/horseinthesky/devops/benchmark/blob/main/images/tempo.png)
+![test2](https://github.com/horseinthesky/devops/blob/main/benchmark/images/tempo.png)
